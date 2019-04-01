@@ -17,7 +17,7 @@ exports.sendNotification = functions.database.ref('/Notifications/{receiverId}/{
             console.log("A notification is deleted");
             return;
         }
-        console.log('A new notification is triggered by: ', receiverId, '; notificationID: ', ntfctnId);
+        console.log('A new notification is sent to: ', receiverId , '; notificationID: ', ntfctnId);
 
         return admin.database()
             .ref(`/Users/${receiverId}/notificationToken`)
@@ -26,22 +26,27 @@ exports.sendNotification = functions.database.ref('/Notifications/{receiverId}/{
                 const token = tokenSnapshot.val();
                 console.log("token: ", token);
 
-                const payload = {
-                    notification: change.after.val(),
-                    token: token
-                };
+                const newNtfctn = change.after.val();
 
+                const payload = {
+                    notification: {
+                        title: "New Notification",
+                        body: "Your book status is updated by " + newNtfctn.senderName
+                    }
+                };
 
                 console.log("payload");
                 console.log(payload);
-                return admin.messaging().send(payload);
+                return admin.messaging().sendToDevice(token, payload);
 
             })
             .then((response) => {
                 response.results.forEach((result, index) => {
                     const error = result.error;
                     if (error) {
-                        console.error('Failure sending notification to', token, error);
+                        console.error('Failure sending notification:', error);
+                    } else {
+                        console.log("Notification sent successfully.");
                     }
             });
         });
