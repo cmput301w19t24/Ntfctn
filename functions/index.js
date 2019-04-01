@@ -27,13 +27,14 @@ exports.sendNotification = functions.database.ref('/Notifications/{receiverId}/{
                 console.log("token: ", token);
 
                 const payload = {
-                    notification: change.after.val()
+                    notification: change.after.val(),
+                    token: token
                 };
 
 
                 console.log("payload");
                 console.log(payload);
-                return admin.messaging().sendToDevice(token, payload);
+                return admin.messaging().send(payload);
 
             })
             .then((response) => {
